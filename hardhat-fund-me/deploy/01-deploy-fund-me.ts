@@ -1,6 +1,7 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
 import { networkConfig, developmentChains } from '../helper-hardhat-config';
+import verify from '../utils/verify';
 
 // async function deployFunc() {
 //   console.log('hey!');
@@ -37,12 +38,12 @@ const deployFundMe: DeployFunction = async ({
     waitConfirmations: networkConfig[network.name].blockConfirmations || 0,
   });
   log(`FundMe deployed at ${fundMe.address}`);
-  /* if (
+  if (
     !developmentChains.includes(network.name) &&
     process.env.ETHERSCAN_API_KEY
   ) {
     await verify(fundMe.address, [ethUsdPriceFeedAddress]);
-  } */
+  }
 };
 
 export default deployFundMe;
