@@ -18,7 +18,21 @@ const {
 } = process.env;
 
 const config: HardhatUserConfig = {
-  solidity: '0.8.17',
+  // solidity: '0.8.17',
+  solidity: {
+    compilers: [{ version: '0.8.17' }, { version: '0.6.6' }],
+  },
+  defaultNetwork: 'hardhat',
+  networks: {
+    goerli: {
+      url: GOERLI_RPC_URL,
+      accounts: [
+        PRIVATE_KEY ||
+          'cb91c849c9291d9cced11d4fecf7980432ff4926d4b75d0f6a3ea7af779b3640',
+      ],
+      chainId: 5,
+    },
+  },
   etherscan: {
     apiKey: ETHERSCAN_API_KEY,
   },
