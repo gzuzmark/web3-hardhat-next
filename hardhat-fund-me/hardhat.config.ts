@@ -41,7 +41,7 @@ const config: HardhatUserConfig = {
     outputFile: 'gas-report.txt',
     noColors: true,
     currency: 'USD',
-    coinmarketcap: COINMARKETCAP,
+    // coinmarketcap: COINMARKETCAP,
   },
   namedAccounts: {
     deployer: {

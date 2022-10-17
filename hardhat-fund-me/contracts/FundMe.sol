@@ -21,19 +21,20 @@ contract FundMe {
     // Type declarations
     using PriceConverter for uint256;
 
+    // State variables
     /* REVIEW: State variables. In the sample repo we can see that state variable have a 
         s_ before any variable so addressToAmountFunded would be
         s_addressToAmountFunded
     */
-    mapping(address => uint256) public addressToAmountFunded;
-    address[] public funders;
+    mapping(address => uint256) public s_addressToAmountFunded;
+    address[] public s_funders;
 
     // Could we make this constant?  /* hint: no! We should make it immutable! */
     // address public /* immutable */ i_owner;
     address public immutable i_owner;
     uint256 public constant MINIMUM_USD = 50 * 10**18;
 
-    AggregatorV3Interface public priceFeed;
+    AggregatorV3Interface public s_priceFeed;
 
     // Events and modifiers
 
@@ -55,7 +56,7 @@ contract FundMe {
 
     constructor(address priceFeedAddress) {
         i_owner = msg.sender;
-        priceFeed = AggregatorV3Interface(priceFeedAddress);
+        s_priceFeed = AggregatorV3Interface(priceFeedAddress);
     }
 
     // Explainer from: https://solidity-by-example.org/fallback/
@@ -80,30 +81,30 @@ contract FundMe {
 
     function fund() public payable {
         require(
-            msg.value.getConversionRate(priceFeed) >= MINIMUM_USD,
+            msg.value.getConversionRate(s_priceFeed) >= MINIMUM_USD,
             "You need to spend more ETH!"
         );
         // require(PriceConverter.getConversionRate(msg.value) >= MINIMUM_USD, "You need to spend more ETH!");
-        addressToAmountFunded[msg.sender] += msg.value;
-        funders.push(msg.sender);
+        s_addressToAmountFunded[msg.sender] += msg.value;
+        s_funders.push(msg.sender);
     }
 
     function getVersion() public view returns (uint256) {
         // ETH/USD price feed address of Goerli Network.
         // AggregatorV3Interface priceFeed = AggregatorV3Interface(0xD4a33860578De61DBAbDc8BFdb98FD742fA7028e);
-        return priceFeed.version();
+        return s_priceFeed.version();
     }
 
     function withdraw() public onlyOwner {
         for (
             uint256 funderIndex = 0;
-            funderIndex < funders.length;
+            funderIndex < s_funders.length;
             funderIndex++
         ) {
-            address funder = funders[funderIndex];
-            addressToAmountFunded[funder] = 0;
+            address funder = s_funders[funderIndex];
+            s_addressToAmountFunded[funder] = 0;
         }
-        funders = new address[](0);
+        s_funders = new address[](0);
         // // transfer
         // payable(msg.sender).transfer(address(this).balance);
         // // send
@@ -114,6 +115,29 @@ contract FundMe {
             value: address(this).balance
         }("");
         require(callSuccess, "Call failed");
+    }
+
+    function cheaperWithdraw() public payable onlyOwner {
+        payable(msg.sender).transfer(address(this).balance);
+        address[] memory _funders = s_funders;
+        // mappings can't be in memory, sorry!
+        for (
+            uint256 funderIndex = 0;
+            funderIndex < _funders.length;
+            funderIndex++
+        ) {
+            address funder = _funders[funderIndex];
+            s_addressToAmountFunded[funder] = 0;
+        }
+        s_funders = new address[](0);
+    }
+
+    function getAddressToAmountFunded(address fundingAddress)
+        public
+        view
+        returns (uint256)
+    {
+        return s_addressToAmountFunded[fundingAddress];
     }
 }
 
